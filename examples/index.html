@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <meta charset="UTF-8" />
+  <h1>SafePath Extractor Test</h1>
+  <form action="/form" method="POST" target="_blank">
+    <p>
+      <input
+        type="text"
+        id="path-input"
+        name="path"
+        value="some/data/file.json"
+      />
+    </p>
+    <button type="button" id="path-submit-btn">Submit as Path</button>
+    <button type="submit">Submit as Form</button>
+    <button type="button" id="json-submit-btn">Submit as JSON</button>
+  </form>
+
+  <script>
+    document
+      .getElementById("json-submit-btn")
+      .addEventListener("click", async () => {
+        const pathValue = document.getElementById("path-input").value;
+
+        try {
+          const response = await fetch("/json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: pathValue }),
+          });
+
+          const responseText = await response.text();
+          alert(`Status: ${response.status}\n${responseText}`);
+        } catch (error) {
+          alert(`Fetch Error: ${error}`);
+        }
+      });
+
+    document
+      .getElementById("path-submit-btn")
+      .addEventListener("click", async () => {
+        const pathValue = document.getElementById("path-input").value;
+
+        try {
+          // The path is sent as part of the URL for the GET request.
+          // fetch automatically handles URL encoding.
+          const response = await fetch(`/path/${pathValue}`);
+
+          const responseText = await response.text();
+          alert(`Status: ${response.status}\n${responseText}`);
+        } catch (error) {
+          alert(`Fetch Error: ${error}`);
+        }
+      });
+  </script>
+</html>

@@ -13,10 +13,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["json", "form"]
+default = ["form", "json"]
 json = ["dep:serde", "axum/json"]
 form = ["dep:serde", "axum/form"]
-full = ["json", "form"]
 
 [dependencies]
 axum = { version = "0.8", default-features = false }
@@ -25,7 +24,11 @@ serde = { version = "1", features = ["derive"], optional = true }
 [dev-dependencies]
 axum-test = "17"
 serde_json = "1"
-tokio = { version = "1", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+
+[[example]]
+name = "usage"
+required-features = ["form", "json"]
 
 [lints.rust]
 unsafe_code = "forbid"
