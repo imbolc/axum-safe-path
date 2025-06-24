@@ -1,114 +1,114 @@
 name: CI
 on:
-    push:
-        branches:
-            - main
-            - ci
-    pull_request:
+  push:
+    branches:
+      - main
+      - ci
+  pull_request:
 
 jobs:
-    rustfmt:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Nightly Rust
-              uses: dtolnay/rust-toolchain@master
-              with:
-                  toolchain: nightly
-                  components: rustfmt
+      - name: Nightly Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rustfmt
 
-            - name: Rustfmt
-              run: cargo +nightly fmt -- --check
+      - name: Rustfmt
+        run: cargo +nightly fmt -- --check
 
-    clippy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Stable Rust
-              uses: dtolnay/rust-toolchain@master
-              with:
-                  toolchain: stable
-                  components: clippy
+      - name: Stable Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy
 
-            - name: Clippy
-              run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
-    rustdoc:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  rustdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Stable Rust
-              uses: dtolnay/rust-toolchain@master
-              with:
-                  toolchain: stable
+      - name: Stable Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
-            - name: Rustdoc
-              run: cargo rustdoc --all-features -- -D warnings
+      - name: Rustdoc
+        run: cargo rustdoc --all-features -- -D warnings
 
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Stable Rust
-              uses: dtolnay/rust-toolchain@master
-              with:
-                  toolchain: stable
+      - name: Stable Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
-            - name: Test all targets
-              run: cargo test --all-targets
+      - name: Test all targets
+        run: cargo test --all-targets
 
-            - name: Test docs
-              run: cargo test --doc
+      - name: Test docs
+        run: cargo test --doc
 
-    typos:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Check typos
-              uses: crate-ci/typos@master
-              with:
-                  files: .
+      - name: Check typos
+        uses: crate-ci/typos@master
+        with:
+          files: .
 
-    cargo_sort:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  cargo_sort:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Stable Rust
-              uses: dtolnay/rust-toolchain@master
-              with:
-                  toolchain: stable
+      - name: Stable Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
-            - name: Install cargo-sort
-              run: cargo install --locked cargo-sort
+      - name: Install cargo-sort
+        run: cargo install --locked cargo-sort
 
-            - name: Check `Cargo.toml` sort
-              run: cargo sort -c
+      - name: Check `Cargo.toml` sort
+        run: cargo sort -c
 
-    machete:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  machete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Stable Rust
-              uses: dtolnay/rust-toolchain@master
-              with:
-                  toolchain: stable
+      - name: Stable Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
-            - name: Install `cargo-machete`
-              run: cargo install --locked cargo-machete
+      - name: Install `cargo-machete`
+        run: cargo install --locked cargo-machete
 
-            - name: Check unused Cargo dependencies
-              run: cargo machete
+      - name: Check unused Cargo dependencies
+        run: cargo machete
