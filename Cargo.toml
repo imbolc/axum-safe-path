@@ -11,6 +11,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
+axum = "0.8"
 
 [lints.rust]
 unsafe_code = "forbid"

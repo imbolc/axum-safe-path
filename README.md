@@ -6,15 +6,14 @@
 
 Traversal-safe `Path` extractor for Axum
 
-
 ## Contributing
 
 - please run [.pre-commit.sh] before sending a PR, it will check everything
-
 
 ## License
 
 This project is licensed under the [MIT license][license].
 
-[.pre-commit.sh]: https://github.com/imbolc/axum-safe-path/blob/main/pre-commit.sh
+[.pre-commit.sh]:
+  https://github.com/imbolc/axum-safe-path/blob/main/.pre-commit.sh
 [license]: https://github.com/imbolc/axum-safe-path/blob/main/LICENSE
