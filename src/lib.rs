@@ -13,13 +13,15 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+const REJECTION_MESSAGE: &str = "Invalid path: possible traversal attack detected";
+
 /// A traversal-safe path extractor for Axum.
 ///
 /// This extractor wraps `axum::extract::Path` and rejects requests
 /// containing path components like `..`, `/`, or `C:`, preventing
 /// directory traversal attacks.
 #[derive(Debug)]
-pub struct SafePath<T>(pub T);
+pub struct SafePath(pub PathBuf);
 
 /// Rejection type for [`SafePath`].
 #[derive(Debug)]
@@ -33,9 +35,7 @@ pub enum SafePathRejection {
 impl fmt::Display for SafePathRejection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::TraversalAttack => {
-                write!(f, "Invalid path: possible traversal attack detected")
-            }
+            Self::TraversalAttack => f.write_str(REJECTION_MESSAGE),
             Self::PathExtraction(err) => write!(f, "{err}"),
         }
     }
@@ -53,36 +53,37 @@ impl Error for SafePathRejection {
 impl IntoResponse for SafePathRejection {
     fn into_response(self) -> Response {
         match self {
-            Self::TraversalAttack => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            Self::TraversalAttack => (StatusCode::BAD_REQUEST, REJECTION_MESSAGE).into_response(),
             Self::PathExtraction(inner) => inner.into_response(),
         }
     }
 }
 
-/// Checks if a path contains components that could be used for traversal
-/// attacks.
+/// Checks if a path contains traversal-related components such as `..`, a root
+/// directory, or a drive prefix.
 fn is_traversal_attack(path: impl AsRef<path::Path>) -> bool {
-    path.as_ref()
-        .components()
-        .any(|c| !matches!(c, Component::CurDir | Component::Normal(_)))
+    path.as_ref().components().any(|component| {
+        matches!(
+            component,
+            Component::ParentDir | Component::Prefix(_) | Component::RootDir
+        )
+    })
 }
 
-impl<S> FromRequestParts<S> for SafePath<PathBuf>
+impl<S> FromRequestParts<S> for SafePath
 where
     S: Send + Sync,
 {
     type Rejection = SafePathRejection;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let Path(path) = Path::<PathBuf>::from_request_parts(parts, state)
+        let Path(path) = Path::from_request_parts(parts, state)
             .await
             .map_err(SafePathRejection::PathExtraction)?;
 
-        if is_traversal_attack(&path) {
-            Err(SafePathRejection::TraversalAttack)
-        } else {
-            Ok(Self(path))
-        }
+        (!is_traversal_attack(&path))
+            .then_some(Self(path))
+            .ok_or(SafePathRejection::TraversalAttack)
     }
 }
 
@@ -118,7 +119,7 @@ mod tests {
     #[test]
     #[cfg(windows)]
     fn invalid_windows_paths() {
-        assert!(is_traversal_attack("C:\\Users\\Admin"),);
-        assert!(is_traversal_attack("\\Windows"),);
+        assert!(is_traversal_attack("C:\\Users\\Admin"));
+        assert!(is_traversal_attack("\\Windows"));
     }
 }

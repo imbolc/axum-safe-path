@@ -8,7 +8,7 @@ Traversal-safe `Path` extractor for Axum
 
 ## Contributing
 
-- please run [.pre-commit.sh] before sending a PR, it will check everything
+Please run [.pre-commit.sh] before sending a PR, it will check everything.
 
 ## License
 
