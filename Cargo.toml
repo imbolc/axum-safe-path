@@ -13,6 +13,10 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 axum = "0.8"
 
+[dev-dependencies]
+axum-test = "17"
+tokio = { version = "1", features = ["macros"] }
+
 [lints.rust]
 unsafe_code = "forbid"
 future_incompatible = "forbid"
@@ -25,7 +29,7 @@ rust_2018_compatibility = "forbid"
 rust_2018_idioms = "forbid"
 rust_2021_compatibility = "forbid"
 rust_2024_compatibility = "forbid"
-unused = "forbid"
+unused = { level = "warn", priority = -1 }
 
 [lints.clippy]
 all = "warn"

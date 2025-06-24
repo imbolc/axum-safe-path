@@ -123,3 +123,36 @@ mod tests {
         assert!(is_traversal_attack("\\Windows"));
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod integration_tests {
+    use axum::{Router, routing::get};
+    use axum_test::TestServer;
+
+    use super::*;
+
+    async fn handler(SafePath(path): SafePath) -> String {
+        format!("Path: {}", path.display())
+    }
+
+    #[tokio::test]
+    async fn successful_path() {
+        let app = Router::new().route("/path/{*path}", get(handler));
+        let server = TestServer::new(app).unwrap();
+
+        let res = server.get("/path/foo/bar.txt").await;
+        assert_eq!(res.status_code(), StatusCode::OK);
+        assert_eq!(res.text(), "Path: foo/bar.txt");
+    }
+
+    #[tokio::test]
+    async fn rejected_path() {
+        let app = Router::new().route("/path/{*path}", get(handler));
+        let server = TestServer::new(app).unwrap();
+
+        let res = server.get("/path//etc/passwd").await;
+        assert_eq!(res.status_code(), StatusCode::BAD_REQUEST);
+        assert_eq!(res.text(), REJECTION_MESSAGE);
+    }
+}
