@@ -1,5 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![doc = include_str!("../README.md")]
+#![allow(forbidden_lint_groups)]
 
 use std::{
     error::Error,
@@ -21,6 +22,7 @@ const REJECTION_MESSAGE: &str = "Invalid path: possible traversal attack detecte
 /// containing path components like `..`, `/`, or `C:`, preventing
 /// directory traversal attacks.
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct SafePath(pub PathBuf);
 
 /// Rejection type for [`SafePath`].
@@ -87,7 +89,7 @@ where
     }
 }
 
-#[cfg(any(feature = "json", feature = "form"))]
+#[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for SafePath {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -104,7 +106,7 @@ impl<'de> serde::Deserialize<'de> for SafePath {
 }
 
 #[cfg(test)]
-mod tests {
+mod validation_tests {
     use super::*;
 
     #[test]
@@ -137,6 +139,29 @@ mod tests {
     fn invalid_windows_paths() {
         assert!(is_traversal_attack("C:\\Users\\Admin"));
         assert!(is_traversal_attack("\\Windows"));
+    }
+}
+
+#[cfg(all(test, feature = "serde"))]
+#[allow(clippy::unwrap_used)]
+mod serde_tests {
+    use super::*;
+
+    #[test]
+    fn roundtrip() {
+        let path = SafePath(PathBuf::from("foo/bar.txt"));
+        let serialized = serde_json::to_string(&path).unwrap();
+        assert_eq!(serialized, r#""foo/bar.txt""#);
+
+        let deserialized: SafePath = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized.0, path.0);
+    }
+
+    #[test]
+    fn invalid_json() {
+        let invalid_json = r#""../secret.txt""#;
+        let result: Result<SafePath, _> = serde_json::from_str(invalid_json);
+        assert!(result.is_err());
     }
 }
 

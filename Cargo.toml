@@ -14,8 +14,9 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["form", "json"]
-json = ["dep:serde", "axum/json"]
-form = ["dep:serde", "axum/form"]
+json = ["serde", "axum/json"]
+form = ["serde", "axum/form"]
+serde = ["dep:serde"]
 
 [dependencies]
 axum = { version = "0.8", default-features = false }
