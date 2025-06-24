@@ -25,6 +25,12 @@ const REJECTION_MESSAGE: &str = "Invalid path: possible traversal attack detecte
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct SafePath(pub PathBuf);
 
+impl AsRef<path::Path> for SafePath {
+    fn as_ref(&self) -> &path::Path {
+        self.0.as_ref()
+    }
+}
+
 /// Rejection type for [`SafePath`].
 #[derive(Debug)]
 pub enum SafePathRejection {
