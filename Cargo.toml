@@ -1,0 +1,42 @@
+[package]
+description = "Traversal-safe `Path` extractor for Axum"
+edition = "2024"
+license = "MIT"
+name = "axum-safe-path"
+repository = "https://github.com/imbolc/axum-safe-path"
+version = "0.1.0"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"
+future_incompatible = "forbid"
+keyword_idents = "forbid"
+let_underscore = "forbid"
+missing_docs = "forbid"
+nonstandard_style = "forbid"
+refining_impl_trait = "forbid"
+rust_2018_compatibility = "forbid"
+rust_2018_idioms = "forbid"
+rust_2021_compatibility = "forbid"
+rust_2024_compatibility = "forbid"
+unused = "forbid"
+
+[lints.clippy]
+all = "warn"
+complexity = "warn"
+expect_used = "warn"
+indexing_slicing = "warn"
+panic = "warn"
+pedantic = "warn"
+perf = "warn"
+style = "warn"
+suspicious = "warn"
+todo = "warn"
+unimplemented = "warn"
+unwrap_used = "warn"
+nursery = { level = "warn", priority = -1 }
