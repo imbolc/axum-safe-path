@@ -6,6 +6,7 @@ use std::{
     error::Error,
     fmt,
     path::{self, Component, PathBuf},
+    str::FromStr,
 };
 
 use axum::{
@@ -28,6 +29,18 @@ pub struct SafePath(pub PathBuf);
 impl AsRef<path::Path> for SafePath {
     fn as_ref(&self) -> &path::Path {
         self.0.as_ref()
+    }
+}
+
+impl FromStr for SafePath {
+    type Err = SafePathRejection;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if is_traversal_attack(s) {
+            Err(SafePathRejection::TraversalAttack)
+        } else {
+            Ok(Self(PathBuf::from(s)))
+        }
     }
 }
 
