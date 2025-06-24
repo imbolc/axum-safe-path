@@ -3,6 +3,8 @@ description = "Traversal-safe `Path` extractor for Axum"
 edition = "2024"
 license = "MIT"
 name = "axum-safe-path"
+keywords = ["axum", "path", "security", "traversal"]
+categories = ["web-programming", "asynchronous"]
 repository = "https://github.com/imbolc/axum-safe-path"
 version = "0.1.0"
 
@@ -10,16 +12,24 @@ version = "0.1.0"
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+default = ["json", "form"]
+json = ["dep:serde", "axum/json"]
+form = ["dep:serde", "axum/form"]
+full = ["json", "form"]
+
 [dependencies]
-axum = "0.8"
+axum = { version = "0.8", default-features = false }
+serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
 axum-test = "17"
+serde_json = "1"
 tokio = { version = "1", features = ["macros"] }
 
 [lints.rust]
 unsafe_code = "forbid"
-future_incompatible = "forbid"
+future_incompatible = { level = "warn", priority = -1 }
 keyword_idents = "forbid"
 let_underscore = "forbid"
 missing_docs = "forbid"

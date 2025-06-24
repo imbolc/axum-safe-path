@@ -87,6 +87,22 @@ where
     }
 }
 
+#[cfg(any(feature = "json", feature = "form"))]
+impl<'de> serde::Deserialize<'de> for SafePath {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let path = PathBuf::deserialize(deserializer)?;
+
+        if is_traversal_attack(&path) {
+            Err(serde::de::Error::custom(REJECTION_MESSAGE))
+        } else {
+            Ok(Self(path))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,7 +142,7 @@ mod tests {
 
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
-mod integration_tests {
+mod path_integration_tests {
     use axum::{Router, routing::get};
     use axum_test::TestServer;
 
@@ -154,5 +170,107 @@ mod integration_tests {
         let res = server.get("/path//etc/passwd").await;
         assert_eq!(res.status_code(), StatusCode::BAD_REQUEST);
         assert_eq!(res.text(), REJECTION_MESSAGE);
+    }
+}
+
+#[cfg(all(test, feature = "json"))]
+#[allow(clippy::unwrap_used, forbidden_lint_groups)]
+mod json_integration_tests {
+    use axum::{Json, Router, routing::post};
+    use axum_test::TestServer;
+    use serde_json::json;
+
+    use super::*;
+
+    #[derive(serde::Deserialize)]
+    struct Payload {
+        path: SafePath,
+    }
+
+    async fn json_handler(Json(payload): Json<Payload>) -> String {
+        format!("Path: {}", payload.path.0.display())
+    }
+
+    #[tokio::test]
+    async fn successful_json_path() {
+        let app = Router::new().route("/", post(json_handler));
+        let server = TestServer::new(app).unwrap();
+
+        let res = server
+            .post("/")
+            .json(&json!({ "path": "foo/bar.txt" }))
+            .await;
+
+        assert_eq!(res.status_code(), StatusCode::OK);
+        assert_eq!(res.text(), "Path: foo/bar.txt");
+    }
+
+    #[tokio::test]
+    async fn rejected_json_path() {
+        let app = Router::new().route("/", post(json_handler));
+        let server = TestServer::new(app).unwrap();
+
+        let res = server
+            .post("/")
+            .json(&json!({ "path": "../secret.txt" }))
+            .await;
+
+        assert_eq!(res.status_code(), StatusCode::UNPROCESSABLE_ENTITY);
+        assert!(res.text().contains(REJECTION_MESSAGE));
+    }
+}
+
+#[cfg(all(test, feature = "form"))]
+#[allow(clippy::unwrap_used, forbidden_lint_groups)]
+mod form_integration_tests {
+    use axum::{Form, Router, routing::post};
+    use axum_test::TestServer;
+
+    use super::*;
+
+    #[derive(serde::Deserialize)]
+    struct Payload {
+        path: SafePath,
+    }
+
+    #[derive(serde::Serialize)]
+    struct TestPayload<'a> {
+        path: &'a str,
+    }
+
+    async fn form_handler(Form(payload): Form<Payload>) -> String {
+        format!("Path: {}", payload.path.0.display())
+    }
+
+    #[tokio::test]
+    async fn successful_form_path() {
+        let app = Router::new().route("/", post(form_handler));
+        let server = TestServer::new(app).unwrap();
+
+        let res = server
+            .post("/")
+            .form(&TestPayload {
+                path: "foo/bar.txt",
+            })
+            .await;
+
+        assert_eq!(res.status_code(), StatusCode::OK);
+        assert_eq!(res.text(), "Path: foo/bar.txt");
+    }
+
+    #[tokio::test]
+    async fn rejected_form_path() {
+        let app = Router::new().route("/", post(form_handler));
+        let server = TestServer::new(app).unwrap();
+
+        let res = server
+            .post("/")
+            .form(&TestPayload {
+                path: "../secret.txt",
+            })
+            .await;
+
+        assert_eq!(res.status_code(), StatusCode::UNPROCESSABLE_ENTITY);
+        assert!(res.text().contains(REJECTION_MESSAGE));
     }
 }
