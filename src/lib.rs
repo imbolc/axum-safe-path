@@ -22,7 +22,7 @@ const REJECTION_MESSAGE: &str = "Invalid path: possible traversal attack detecte
 /// This extractor wraps `axum::extract::Path` and rejects requests
 /// containing path components like `..`, `/`, or `C:`, preventing
 /// directory traversal attacks.
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct SafePath(pub PathBuf);
 
