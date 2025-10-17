@@ -6,7 +6,7 @@ name = "axum-safe-path"
 keywords = ["axum", "path", "security", "traversal"]
 categories = ["web-programming", "asynchronous"]
 repository = "https://github.com/imbolc/axum-safe-path"
-version = "0.2.1"
+version = "0.2.2"
 
 [package.metadata.docs.rs]
 all-features = true
